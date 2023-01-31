@@ -45,7 +45,10 @@ async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
             //     ],
             //     teloxide::types::InlineKeyboardButtonType::Callback,
             // );
-            bot.set_chat_photo(msg.chat.id, InputFile::url(reqwest::Url::parse("https://hckrnews.com/img/touch/apple-touch-icon-114x114-precomposed.png").unwrap())).send().await?;
+            let response = reqwest::get("https://hckrnews.com/img/touch/apple-touch-icon-114x114-precomposed.png").await?;
+            let photo = response.bytes().await?;
+            bot.set_chat_photo(msg.chat.id, InputFile::file_data(photo, "photo.png"))
+                .await?;
             bot.send_message(msg.chat.id, "Welcome to my rust-bot :)").await?
         },
         Command::Help => bot.send_message(msg.chat.id, Command::descriptions().to_string()).await?,
