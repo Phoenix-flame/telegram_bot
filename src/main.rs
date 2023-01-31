@@ -12,6 +12,8 @@ use futures::stream::Stream;
 
 #[tokio::main]
 async fn main() -> Result<(), reqwest::Error> {
+    // let news = get_latest_news().await.unwrap();
+    // println!("{:?}", news);
     let http = reqwest::Proxy::http("127.0.0.1:20170").unwrap();
     let client = reqwest::Client::builder().proxy(http).build()?;
     let bot = Bot::from_env_with_client(client);
@@ -57,7 +59,7 @@ async fn get_latest_news() -> Result<String, reqwest::Error> {
     let nodes = document.find(Class("story").and(Class("link"))).take(30);
     let filtered_nodes = nodes.filter(|x| x.text() != "undefined \n");
     for node in filtered_nodes {
-        latest_news.push_str(&format!("<a>{}</a>\n", node.text()));
+        latest_news.push_str(&format!("<a href=\"{}\">{}</a>\n", node.attr("href").unwrap(), node.text()));
     }
 
     Ok(latest_news)
