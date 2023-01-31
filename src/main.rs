@@ -45,13 +45,12 @@ async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
             //     ],
             //     teloxide::types::InlineKeyboardButtonType::Callback,
             // );
-            bot.set_chat_photo(chat.id, InputFile::url("https://hckrnews.com/img/touch/apple-touch-icon-114x114-precomposed.png"));
+            bot.set_chat_photo(msg.chat.id, InputFile::url(reqwest::Url::parse("https://hckrnews.com/img/touch/apple-touch-icon-114x114-precomposed.png").unwrap()));
             bot.send_message(msg.chat.id, "Welcome to my rust-bot :)").await?
         },
         Command::Help => bot.send_message(msg.chat.id, Command::descriptions().to_string()).await?,
         Command::News => {
             let news = get_latest_news().await.unwrap();
-            bot.set_chat_menu_button();
             bot.send_message(msg.chat.id, news).parse_mode(teloxide::types::ParseMode::Html).await?
         }
     };
