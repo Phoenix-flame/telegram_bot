@@ -1,7 +1,8 @@
 
 use futures::Future;
 use select::predicate::Predicate;
-use teloxide::prelude::*;
+use teloxide::utils::command;
+use teloxide::{prelude::*, utils::command::BotCommands};
 use std::env;
 use reqwest::Client;
 use select::document::Document;
@@ -12,35 +13,45 @@ use futures::stream::Stream;
 #[tokio::main]
 async fn main() -> Result<(), reqwest::Error> {
     let bot = Bot::from_env();
-    teloxide::repl(bot, |bot: Bot, msg: Message| async move {
-        bot.send_dice(msg.chat.id).await?;
-        Ok(())
-    })
-    .await;
-    // let mut bot = Bot::new("6147407906:AAEp1nNMP2Y5YaRIrNAsVVa0fnZsL7-eYV4").update_interval(200);
+    Command::repl(bot, answer).await;
+    Ok(())
+}
 
-    // let handle = bot.new_cmd("/news")
-    //     .and_then(|(bot, msg)| {
-    //         println!("{:?}", msg);
-    //         bot.message(msg.chat.id, msg.text).send()
-    //     })
-    //     .for_each(|_| Ok(()));
+#[derive(BotCommands, Clone)]
+#[command(rename_rule = "lowercase", description = "These commands are supported:")]
+enum Command {
+    #[command(description = "display this text.")]
+    Help,
+    #[command(description = "get latest hacker news")]
+    News,
+    #[command(description = "handle a username.")]
+    Username(String),
+    #[command(description = "handle a username and an age.", parse_with = "split")]
+    UsernameAndAge { username: String, age: u8 },
+}
 
+async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
+    match cmd {
+        Command::Help => bot.send_message(msg.chat.id, Command::descriptions().to_string()).await?,
+        Command::News => {
+            let news = get_latest_news().await.unwrap();
+            bot.send_message(msg.chat.id, news).await?
+        },
+        Command::Username(username) => {
+            bot.send_message(msg.chat.id, format!("Your username is @{username}.")).await?
+        }
+        Command::UsernameAndAge { username, age } => {
+            bot.send_message(msg.chat.id, format!("Your username is @{username} and age is {age}."))
+                .await?
+        }
+    };
 
-    //     // .and_then(|(bot, msg)| {
-    //     //     let news = get_latest_news().await.unwrap();
- 
-    //     //     
-    //     // })
-    //     // .for_each(|_| Ok(()));
- 
-    // bot.run_with(handle);
     Ok(())
 }
 
 async fn get_latest_news() -> Result<String, reqwest::Error> {
-    let http = reqwest::Proxy::http("127.0.0.1:20170").unwrap();
-    let client = reqwest::Client::builder().proxy(http).build()?;
+    // let http = reqwest::Proxy::http("127.0.0.1:20170").unwrap();
+    let client = reqwest::Client::new();
     
     let response = client.get("https://hckrnews.com/")
         .send()
