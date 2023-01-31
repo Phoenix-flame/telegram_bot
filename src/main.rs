@@ -54,7 +54,7 @@ async fn get_latest_news() -> Result<String, reqwest::Error> {
     let nodes = document.find(Class("story").and(Class("link"))).take(30);
     let filtered_nodes = nodes.filter(|x| x.text() != "undefined \n");
     for node in filtered_nodes {
-        latest_news.push_str(&format!("{}\n", node.text()));
+        latest_news.push_str(&format!("<a>{}</a>\n", node.text()));
     }
 
     Ok(latest_news)
