@@ -12,7 +12,9 @@ use futures::stream::Stream;
 
 #[tokio::main]
 async fn main() -> Result<(), reqwest::Error> {
-    let bot = Bot::from_env();
+    let http = reqwest::Proxy::http("127.0.0.1:20170").unwrap();
+    let client = reqwest::Client::builder().proxy(http).build()?;
+    let bot = Bot::from_env_with_client(client);
     Command::repl(bot, answer).await;
     Ok(())
 }
@@ -35,7 +37,8 @@ async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
         Command::Help => bot.send_message(msg.chat.id, Command::descriptions().to_string()).await?,
         Command::News => {
             let news = get_latest_news().await.unwrap();
-            bot.send_message(msg.chat.id, news).await?
+            bot.set_chat_menu_button();
+            bot.send_message(msg.chat.id, news).parse_mode(teloxide::types::ParseMode::Html).await?
         }
     };
 
