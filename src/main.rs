@@ -47,7 +47,7 @@ async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
             // );
             let response = reqwest::get("https://hckrnews.com/img/touch/apple-touch-icon-114x114-precomposed.png").await?;
             let photo = response.bytes().await?;
-            bot.set_chat_photo(msg.chat.id, InputFile::memory(photo.into()))
+            bot.set_chat_photo(msg.chat.id, InputFile::memory(photo))
                 .await?;
             bot.send_message(msg.chat.id, "Welcome to my rust-bot :)").await?
         },
