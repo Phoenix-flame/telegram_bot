@@ -20,29 +20,22 @@ async fn main() -> Result<(), reqwest::Error> {
 #[derive(BotCommands, Clone)]
 #[command(rename_rule = "lowercase", description = "These commands are supported:")]
 enum Command {
+    #[command()]
+    Start,
     #[command(description = "display this text.")]
     Help,
     #[command(description = "get latest hacker news")]
     News,
-    #[command(description = "handle a username.")]
-    Username(String),
-    #[command(description = "handle a username and an age.", parse_with = "split")]
-    UsernameAndAge { username: String, age: u8 },
+    
 }
 
 async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
     match cmd {
+        Command::Start => bot.send_message(msg.chat.id, "Welcome to my rust-bot :)").await?,
         Command::Help => bot.send_message(msg.chat.id, Command::descriptions().to_string()).await?,
         Command::News => {
             let news = get_latest_news().await.unwrap();
             bot.send_message(msg.chat.id, news).await?
-        },
-        Command::Username(username) => {
-            bot.send_message(msg.chat.id, format!("Your username is @{username}.")).await?
-        }
-        Command::UsernameAndAge { username, age } => {
-            bot.send_message(msg.chat.id, format!("Your username is @{username} and age is {age}."))
-                .await?
         }
     };
 
