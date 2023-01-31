@@ -1,6 +1,7 @@
 
 use futures::Future;
 use select::predicate::Predicate;
+use teloxide::types::InputFile;
 use teloxide::utils::command;
 use teloxide::{prelude::*, utils::command::BotCommands};
 use std::env;
@@ -14,9 +15,9 @@ use futures::stream::Stream;
 async fn main() -> Result<(), reqwest::Error> {
     // let news = get_latest_news().await.unwrap();
     // println!("{:?}", news);
-    let http = reqwest::Proxy::http("127.0.0.1:20170").unwrap();
-    let client = reqwest::Client::builder().proxy(http).build()?;
-    let bot = Bot::from_env_with_client(client);
+    // let http = reqwest::Proxy::http("127.0.0.1:20170").unwrap();
+    // let client = reqwest::Client::builder().proxy(http).build()?;
+    let bot = Bot::from_env();
     Command::repl(bot, answer).await;
     Ok(())
 }
@@ -35,7 +36,18 @@ enum Command {
 
 async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
     match cmd {
-        Command::Start => bot.send_message(msg.chat.id, "Welcome to my rust-bot :)").await?,
+        Command::Start => {
+            // bot.set_chat_menu_button(
+            //     vec![
+            //         Command::Start.into(),
+            //         Command::Help.into(),
+            //         Command::News.into(),
+            //     ],
+            //     teloxide::types::InlineKeyboardButtonType::Callback,
+            // );
+            bot.set_chat_photo(chat.id, InputFile::url("https://hckrnews.com/img/touch/apple-touch-icon-114x114-precomposed.png"));
+            bot.send_message(msg.chat.id, "Welcome to my rust-bot :)").await?
+        },
         Command::Help => bot.send_message(msg.chat.id, Command::descriptions().to_string()).await?,
         Command::News => {
             let news = get_latest_news().await.unwrap();
